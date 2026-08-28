@@ -1,0 +1,10 @@
+# Aplicaciones de IA que uso o he usado
+
+**Nombre:** Claude Opus 5 / Claude Sonnet 5
+**Uso:** En el trabajo, por lo general en plan mode para debuggear, entender el funcionamiento de bloques de código, sugerir casos de pruebas unitarias. El modelo depende de la complejidad de la tarea.
+
+**Nombre:** ChatGPT (Gratuito) 
+**Uso:** Cosas cotidianas como generación de imágenes diversas, o relacionadas a hobbies como discutir mejoras para listas de EDH como la siguiente: https://moxfield.com/decks/IwIc42PCCkmt_fqAP7qWDg
+
+**Nombre:** *Varias*
+**Uso:** Experimentar con aplicaciones para dispositivos móviles para crear canciones, tanto la letra como la música.

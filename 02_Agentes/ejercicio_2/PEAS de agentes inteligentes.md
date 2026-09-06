@@ -1,7 +1,7 @@
 ### 1. Asistente virtual de voz
 
 - **Performance:** Entiende lo que se le dice y responde de forma coherente, correcta y segua.
-- **Environment:** Habitaciones, autos, dispositivos móviles. Voz.
+- **Environment:** Habitaciones, autos, dispositivos móviles, dispositivos electrónicos. Voz.
 - **Actuators:** Vocinas, Wifi, APIs.
 - **Sensors:** Internet, perfiles de usuario, micrófono, texto, Wifi, Bluetooth.
 
@@ -53,3 +53,15 @@
 - **Environment:** Tablero y piezas de ajedrez.
 - **Actuators:** API
 - **Sensors:** API
+
+### Propiedades del ambiente
+| Agente | Observable | Determinisico | Episódico | Estático | Discreto |
+| :--- | :---: | :---: | :---: | :---: | :---: |
+| Asistente virtual de voz | Parcial | No | Sí | No | No|
+| Robot aspirador doméstico | Parcial | No | Sí | No | No |
+| Sistema de recomendación de streaming | Completo | No | Sí | Sí | Sí |
+| Vehículo autónomo en ciudad | Parcial | No | No | No | No | No |
+| Agente de trading algorítmico en bolsa | Parcial | No | No | No | No |
+| Sistema de diagnóstico médico asistido por IA | Parcial | No | Sí | Sí | No |
+| Dron de inspección de infraestructura | Parcial  | No | Sí | Sí | No |
+| Agente jugador de ajedrez | Completo | Sí | Sí | Sí | Sí |

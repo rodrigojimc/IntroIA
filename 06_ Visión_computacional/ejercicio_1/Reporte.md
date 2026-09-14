@@ -6,7 +6,8 @@ YOLOv8n identifica correctamente a 2 personas y una corbata. EL módelo no es ca
 
 YOLOv8n + COCO128 x 3 identifica correctamente a 4 perspnas, un camión y una señal de alto a pesar de que esta última y 2 de las personas aparecen parcialmente.
 
-**Segunda corrida**
+**Segunda corrida**ç
+
 Se eligió una foto en la que aparecen un tostador, una vasija, un cuchillo y pan rebanado y los resultados difieren:
 
 YOLOv8n:

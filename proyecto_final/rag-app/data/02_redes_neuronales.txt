@@ -1,0 +1,84 @@
+REDES NEURONALES PROFUNDAS
+
+Las redes neuronales profundas (deep neural networks) han revolucionado el campo de la inteligencia artificial en la última década. Estos modelos están inspirados en la estructura del cerebro humano y han demostrado ser extraordinariamente efectivos en tareas complejas como reconocimiento de imágenes, procesamiento de lenguaje natural y generación de contenido.
+
+Estructura Básica
+
+Una red neuronal consiste en capas de neuronas artificiales interconectadas. Cada neurona recibe inputs, aplica un conjunto de pesos, suma estas entradas ponderadas y aplica una función de activación no lineal.
+
+Función de Activación
+Las funciones de activación introducen no-linealidad en la red, lo que le permite aprender relaciones complejas en los datos. Funciones de activación comunes incluyen:
+- ReLU (Rectified Linear Unit): max(0, x)
+- Sigmoid: 1 / (1 + e^(-x))
+- Tanh: (e^x - e^(-x)) / (e^x + e^(-x))
+- Softmax: se usa típicamente en la capa de salida para clasificación multiclase
+
+Propagación hacia Adelante (Forward Pass)
+
+Durante la propagación hacia adelante, los datos fluyen a través de la red desde la capa de entrada hasta la capa de salida. En cada capa:
+1. Se multiplican las entradas por los pesos
+2. Se suma el sesgo (bias)
+3. Se aplica la función de activación
+
+Matemáticamente: a_l = σ(W_l  a(l-1) + b_l), donde σ es la función de activación.
+
+Retropropagación (Backpropagation)
+
+La retropropagación es el algoritmo fundamental para entrenar redes neuronales. Funciona calculando el gradiente de la función de pérdida con respecto a cada peso en la red. Este proceso ocurre en dos fases:
+
+1. Forward pass: calcula las predicciones
+2. Backward pass: calcula los gradientes usando la regla de la cadena
+
+Con estos gradientes, podemos actualizar los pesos usando optimizadores como descenso de gradiente estocástico (SGD) o Adam.
+
+Arquitecturas Importantes
+
+Redes Convolucionales (CNN)
+Las redes convolucionales están especialmente diseñadas para procesar datos estructurados espacialmente como imágenes. Utilizan capas convolucionales que aplican filtros de pequeño tamaño a través de la entrada, detectando características locales como bordes, texturas y patrones.
+
+Redes Recurrentes (RNN)
+Las redes recurrentes son efectivas para procesar secuencias de datos. Tienen conexiones que se retroalimentan, permitiéndoles mantener información sobre eventos anteriores. Las variantes modernas incluyen LSTM y GRU que resuelven el problema de vanishing gradients.
+
+Transformers
+Los transformers han revolucionado el procesamiento de lenguaje natural. Introducen el mecanismo de atención que permite que el modelo enfoque diferentes partes de la entrada según sea necesario. Modelos como BERT y GPT están basados en la arquitectura transformer.
+
+Optimización
+
+El proceso de optimización es crucial para entrenar redes neuronales profundas. Algunos optimizadores populares incluyen:
+
+- SGD (Stochastic Gradient Descent): actualiza pesos usando gradientes mini-batch
+- Momentum: añade un término que acelera en direcciones consistentes
+- Adam: combina momentum con normalización adaptativa de la tasa de aprendizaje
+
+La tasa de aprendizaje es un hiperparámetro crítico que controla el tamaño de los pasos en la actualización de pesos.
+
+Regularización
+
+La regularización ayuda a prevenir overfitting:
+- L1/L2 regularization: añade una penalización al tamaño de los pesos
+- Dropout: desactiva aleatoriamente neuronas durante el entrenamiento
+- Batch normalization: normaliza las activaciones de cada capa
+
+Desafíos y Soluciones
+
+Gradientes que Desaparecen o Explotan
+En redes profundas, los gradientes pueden volverse muy pequeños (desapareciendo) o muy grandes (explotando) durante la retropropagación. Soluciones incluyen:
+- Inicialización cuidadosa de pesos
+- Normalización de lotes
+- Arquitecturas residuales (ResNets)
+
+Sobreajuste
+Con muchos parámetros, las redes profundas tienden a memorizar los datos de entrenamiento. Técnicas como dropout y regularización L2 ayudan a mitigar esto.
+
+Aplicaciones Exitosas
+
+Las redes neuronales profundas han logrado resultados impresionantes en:
+- Reconocimiento de voz y procesamiento de audio
+- Visión por computadora e identificación facial
+- Procesamiento y generación de lenguaje natural
+- Sistemas de recomendación
+- Conducción autónoma
+
+Conclusión
+
+Las redes neuronales profundas son la base de la mayoría de los avances recientes en inteligencia artificial. Su capacidad para aprender representaciones complejas de datos las hace extraordinariamente versátiles y potentes. Sin embargo, requieren grandes cantidades de datos y poder computacional para entrenarlas efectivamente.

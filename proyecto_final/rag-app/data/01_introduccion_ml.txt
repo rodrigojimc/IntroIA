@@ -1,0 +1,52 @@
+INTRODUCCIÓN AL APRENDIZAJE AUTOMÁTICO
+
+El aprendizaje automático es una rama de la inteligencia artificial que se enfoca en el desarrollo de algoritmos y modelos estadísticos que permiten a las computadoras aprender de los datos sin ser programadas explícitamente. En lugar de seguir instrucciones predefinidas, los sistemas de aprendizaje automático identifican patrones en los datos y hacen predicciones o decisiones basadas en esos patrones.
+
+Conceptos Fundamentales
+
+Datos de Entrenamiento
+Los datos de entrenamiento son ejemplos del mundo real que se utilizan para enseñar a un modelo de aprendizaje automático. Cada ejemplo típicamente consiste en características (inputs) y etiquetas (outputs). Por ejemplo, en un problema de clasificación de imágenes, las características serían los píxeles de la imagen y la etiqueta sería la categoría de objeto que contiene la imagen.
+
+Características (Features)
+Las características son los atributos o variables que utilizamos para describir los datos. En aprendizaje automático, elegir las características correctas es crucial para el rendimiento del modelo. Un buen conjunto de características debe ser:
+- Relevante para el problema
+- No redundante
+- Suficientemente informativo
+
+Función de Pérdida
+La función de pérdida (loss function) mide qué tan bien el modelo está generando predicciones. Cuanto menor sea la pérdida, mejor es el modelo. Diferentes tipos de problemas usan diferentes funciones de pérdida. Por ejemplo, en clasificación binaria frecuentemente se usa la entropía cruzada (cross-entropy loss).
+
+Tipos de Aprendizaje
+
+Aprendizaje Supervisado
+En el aprendizaje supervisado, contamos con un conjunto de datos etiquetados donde cada entrada tiene una salida conocida. El objetivo es aprender una función que mapee las entradas a las salidas. Ejemplos incluyen:
+- Regresión: predecir valores continuos como precios de casas
+- Clasificación: predecir categorías discretas como si un email es spam o no
+
+Aprendizaje No Supervisado
+En el aprendizaje no supervisado, trabajamos con datos sin etiquetas. El objetivo es descubrir patrones ocultos o estructuras en los datos. Técnicas comunes incluyen:
+- Clustering: agrupar puntos de datos similares
+- Reducción de dimensionalidad: proyectar datos a dimensiones más bajas manteniendo información importante
+
+Aprendizaje por Refuerzo
+En el aprendizaje por refuerzo, un agente aprende a tomar decisiones mediante la interacción con un entorno. El agente recibe recompensas o penalizaciones por sus acciones y ajusta su estrategia para maximizar las recompensas a largo plazo.
+
+Overfitting y Underfitting
+
+Overfitting
+El overfitting ocurre cuando un modelo memoriza los datos de entrenamiento en lugar de aprender patrones generales. Un modelo que hace overfitting generalmente tiene:
+- Excelente rendimiento en los datos de entrenamiento
+- Pobre rendimiento en datos nuevos (generalización débil)
+
+Underfitting
+El underfitting ocurre cuando un modelo es demasiado simple para capturar los patrones en los datos. Un modelo que hace underfitting típicamente tiene:
+- Pobre rendimiento tanto en entrenamiento como en prueba
+- Baja capacidad expresiva
+
+Validación Cruzada
+
+La validación cruzada es una técnica para evaluar de manera más robusta el rendimiento de un modelo. En lugar de usar un único conjunto de prueba, dividimos los datos en k pliegues, entrenamos k modelos diferentes usando k-1 pliegues para entrenamiento y 1 para prueba, y luego promediamos los resultados. Esta técnica proporciona una estimación más confiable del rendimiento del modelo en datos no vistos.
+
+Conclusión
+
+El aprendizaje automático es fundamental en la inteligencia artificial moderna. Comprender estos conceptos es esencial para construir sistemas de IA efectivos. La práctica regular con diferentes datasets y algoritmos ayuda a desarrollar intuición sobre cuándo y cómo aplicar diferentes técnicas.

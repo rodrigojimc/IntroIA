@@ -15,7 +15,7 @@ class ResponseGenerator:
     def __init__(self, api_key: str = None, model: str = "gemini-pro-latest", min_score: float = 0.3):
         api_key = api_key or os.getenv("GOOGLE_API_KEY")
         if not api_key:
-            raise ValueError("GOOGLE_API_KEY not set in environment or passed as argument")
+            raise ValueError("GOOGLE_API_KEY no está definida")
         
         genai.configure(api_key = api_key)
         self.model_name = model
@@ -26,10 +26,10 @@ class ResponseGenerator:
         question: str,
         chunks: List[RetrievedChunk]
     ) -> GenerationResult:
-        """Generate a response ground"""
+        """Genera una respuesta basada solo en los chunks recuperados."""
         abstain: GenerationResult = {"answer": ABSTAIN_MESSAGE, "abstained": True, "citations": []}
 
-        # Keep only chunks above the threshold; abstain if none qualify
+        # Solo se usan los chunks que superan el umbral; si no hay ninguno, se abstiene
         relevant_chunks = [c for c in chunks if c["score"] >= self.min_score]
         if not relevant_chunks:
             return abstain
@@ -43,8 +43,7 @@ class ResponseGenerator:
         for chunk in relevant_chunks:
             context_text += f"[{chunk['id']}] (Fuente: {chunk['source']})\n"
             context_text += f"{chunk['text']}\n\n"
-        
-        # Create prompt that enforces grounded generation
+
         prompt = f"""Eres un asistente de IA que responde preguntas basándote ÚNICAMENTE en la información proporcionada.
 
 Contexto basado en los siguientes documentos:
@@ -63,31 +62,17 @@ Instrucciones:
 
 Respuesta:"""
         
-        try:
-            model = genai.GenerativeModel(self.model_name)
-            response = model.generate_content(prompt)
-            
-            if response.text:
-                answer = response.text.strip()
+        # Los errores de Gemini se propagan para que la API responda con un código de error
+        model = genai.GenerativeModel(self.model_name)
+        answer = model.generate_content(prompt).text.strip()
+        if not answer:
+            raise RuntimeError("Gemini devolvió una respuesta vacía")
 
-                if "no tengo suficiente evidencia" in answer.lower():
-                    return abstain
+        if "no tengo suficiente evidencia" in answer.lower():
+            return abstain
 
-                return {
-                    "answer": answer,
-                    "abstained": False,
-                    "citations": relevant_chunks
-                }
-            else:
-                return {
-                    "answer": "No pude generar una respuesta. Intenta reformular la pregunta.",
-                    "abstained": True,
-                    "citations": []
-                }
-
-        except Exception as e:
-            return {
-                "answer": f"Error generando respuesta: {str(e)}",
-                "abstained": True,
-                "citations": []
-            }
+        return {
+            "answer": answer,
+            "abstained": False,
+            "citations": relevant_chunks
+        }

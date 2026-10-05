@@ -1,5 +1,6 @@
-from fastapi import FastAPI
-from pydantic import BaseModel
+from typing import Annotated
+from fastapi import FastAPI, HTTPException
+from pydantic import BaseModel, Field, StringConstraints
 from app.store import VectorStore
 from app.embed import EmbeddingClient
 from app.generate import ResponseGenerator
@@ -9,20 +10,16 @@ from dotenv import load_dotenv
 
 
 load_dotenv()
-app = FastAPI(title="RAG System API", version="1.0")
-
-# Initialize vector store and clients
+app = FastAPI(title="API Sistema RAG", version="1.0")
 
 store = VectorStore(persist_dir = "chroma")
-# Both clients read GOOGLE_API_KEY from the environment
+# Ambos clientes leen GOOGLE_API_KEY del entorno
 try:
     embed_client = EmbeddingClient()
     response_gen = ResponseGenerator(min_score = 0.3)
 except ValueError:
     embed_client = None
     response_gen = None
-
-# Models
 
 class Chunk(BaseModel):
     id: int
@@ -39,8 +36,8 @@ class IngestRequest(BaseModel):
     directory_path: str
 
 class QueryRequest(BaseModel):
-    question: str
-    top_k: int = 3
+    question: Annotated[str, StringConstraints(strip_whitespace = True, min_length = 1)]
+    top_k: int = Field(default = 3, ge = 1)
 
 class DocumentInfo(BaseModel):
     name: str
@@ -48,101 +45,83 @@ class DocumentInfo(BaseModel):
 class DocumentsResponse(BaseModel):
     documents: list[DocumentInfo]
 
-# Endpoints
+def require_api_configured() -> None:
+    if not embed_client or not response_gen:
+        raise HTTPException(status_code = 503, detail = "API de Google AI no configurada")
 
 @app.get("/health")
 def health():
-    """Health check endpoint."""
+    """Indica si la API de Google AI está configurada."""
     return {"api_configured": embed_client is not None}
 
 @app.post("/ingest")
 def ingest(request: IngestRequest):
-    """Ingest documents into the vector store."""
-    if not embed_client:
-        return {"error": "API de Google AI no configurada", "status": "error"}
-    
-    all_chunks = []
+    """Carga los documentos de un directorio en la base vectorial."""
+    require_api_configured()
+
     dir_path = Path(request.directory_path)
     file_paths = list(dir_path.glob("*.md")) + list(dir_path.glob("*.txt")) + list(dir_path.glob("*.pdf"))
-
     if not file_paths:
-        return {"error": "No se encontraron archivos", "status": "error"}
+        raise HTTPException(
+            status_code = 404,
+            detail = f"No se encontraron archivos .md, .txt o .pdf en '{request.directory_path}'"
+        )
 
+    all_chunks = []
     for filepath in file_paths:
         try:
-            chunks = chunk_file(str(filepath), chunk_size = 300, overlap = 50)
-            all_chunks.extend(chunks)
-        except Exception as e:
-            return {"error": f"Error al procesar {filepath}: {str(e)}", "status": "error"}
-    
+            all_chunks.extend(chunk_file(str(filepath), chunk_size = 300, overlap = 50))
+        except Exception:
+            raise HTTPException(status_code = 422, detail = f"No se pudo procesar {filepath.name}")
+
     if not all_chunks:
-        return {"error": "No se generaron chunks", "status": "error"}
+        raise HTTPException(status_code = 422, detail = "Los archivos no contienen texto")
 
     try:
-        texts_to_embed = [chunk["text"] for chunk in all_chunks]
-        embeddings = embed_client.embed_batch(texts_to_embed)
+        embeddings = embed_client.embed_batch([chunk["text"] for chunk in all_chunks])
+    except Exception:
+        raise HTTPException(status_code = 502, detail = "Error al generar los embeddings con Google AI")
+
+    try:
         store.add_chunks(all_chunks, embeddings)
-        return {"status": "success"}
-    except Exception as e:
-        return {"error": f"Error al guardar documentos: {str(e)}", "status": "error"}
+    except Exception:
+        raise HTTPException(status_code = 500, detail = "Error al guardar los documentos")
+
+    return {"status": "success"}
 
 @app.post("/query")
 def query(request: QueryRequest) -> QueryResponse:
-    """Query the RAG system."""
-    if not embed_client or not response_gen:
-        return QueryResponse(
-            answer = "API de Google AI no configurada",
-            citations = [],
-            abstained = True
-        )
-    
-    if not request.question or len(request.question.strip()) == 0:
-        return QueryResponse(
-            answer = "Por favor escribe una pregunta",
-            citations = [],
-            abstained = True
-        )
+    """Responde una pregunta usando los documentos cargados."""
+    require_api_configured()
 
     try:
         query_embedding = embed_client.embed_query(request.question)
-    except Exception as e:
-        return QueryResponse(
-            answer = f"Error al generar embedding de la consulta: {str(e)}",
-            citations = [],
-            abstained = True
-        )
+    except Exception:
+        raise HTTPException(status_code = 502, detail = "Error al generar el embedding de la pregunta")
 
     try:
         chunks = store.search(query_embedding, top_k = request.top_k)
-    except Exception as e:
-        return QueryResponse(
-            answer = f"Error al recuperar documentos: {str(e)}",
-            citations = [],
-            abstained = True
-        )
+    except Exception:
+        raise HTTPException(status_code = 500, detail = "Error al recuperar documentos")
 
-    used_chunks = []
     try:
         gen_result = response_gen.generate(request.question, chunks)
-        answer = gen_result["answer"]
-        abstained = gen_result["abstained"]
-        used_chunks = gen_result["citations"]
-    except Exception as e:
-        answer = f"Error al generar respuesta: {str(e)}"
-        abstained = True
+    except Exception:
+        raise HTTPException(status_code = 502, detail = "Error al generar la respuesta con Gemini")
 
-    # Only cite the chunks actually given to the model
+    # Solo se citan los chunks que recibió el modelo
     citations = [
         Chunk(id = c["id"], source = c["source"], text = c["text"], score = round(c["score"], 4))
-        for c in used_chunks
+        for c in gen_result["citations"]
     ]
-    
+
     return QueryResponse(
-        answer = answer,
+        answer = gen_result["answer"],
         citations = citations,
-        abstained = abstained
+        abstained = gen_result["abstained"]
     )
 
 @app.get("/documents", response_model = DocumentsResponse)
 def get_documents():
+    """Lista los documentos cargados."""
     return store.get_documents()

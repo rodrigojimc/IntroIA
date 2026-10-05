@@ -27,6 +27,16 @@ Cuando el sistema se abstiene, por cualquiera de los dos motivos:
 
 Cuando responde, `citations` contiene únicamente los *chunks* que se pasaron al modelo, con el mismo número `[n]` que aparece en la respuesta.
 
+Los errores no se tratan como abstención: la API responde con un código HTTP de error y un campo `detail` con la descripción.
+
+| Código | Causa |
+|---|---|
+| 404 | `/ingest`: el directorio no tiene archivos `.md`, `.txt` o `.pdf` |
+| 422 | Pregunta vacía, o un archivo que no se pudo procesar |
+| 500 | Error al leer o escribir en ChromaDB |
+| 502 | Error de Google AI al generar *embeddings* o respuestas |
+| 503 | `GOOGLE_API_KEY` no configurada |
+
 ## Requerimientos
 
 - Python 3.10+

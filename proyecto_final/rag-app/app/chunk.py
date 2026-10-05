@@ -1,4 +1,4 @@
-﻿"""Text chunking utilities for RAG."""
+﻿"""División de documentos en chunks con solapamiento."""
 import re
 from typing import List, TypedDict
 import os
@@ -22,9 +22,9 @@ def chunk_text(
     text: str,
     chunk_size: int = 300,
     overlap: int = 50,
-    source: str = "unknown"
+    source: str = "desconocido"
 ) -> List[TextChunk]:
-    """Split text into overlapping chunks."""
+    """Divide el texto en chunks de unas chunk_size palabras que se solapan unas overlap palabras."""
     sentences = split_into_sentences(text)
     chunks = []
     current_chunk = []
@@ -34,7 +34,7 @@ def chunk_text(
     for sentence in sentences:
         sentence_tokens = count_tokens_simple(sentence)
         
-        # If adding this sentence exceeds chunk_size, save current chunk
+        # Si la oración ya no cabe, se cierra el chunk actual
         if current_tokens + sentence_tokens > chunk_size and current_chunk:
             chunk_text = " ".join(current_chunk)
             chunks.append({
@@ -45,7 +45,7 @@ def chunk_text(
             })
             chunk_id += 1
             
-            # Start overlap: keep last sentences to maintain context
+            # El siguiente chunk empieza con las últimas oraciones del anterior para no perder contexto
             overlap_tokens = 0
             overlap_sentences = []
             for sent in reversed(current_chunk):
@@ -59,8 +59,7 @@ def chunk_text(
         
         current_chunk.append(sentence)
         current_tokens += sentence_tokens
-    
-    # Add final chunk
+
     if current_chunk:
         chunk_text = " ".join(current_chunk)
         chunks.append({
@@ -77,7 +76,7 @@ def chunk_file(
     chunk_size: int = 300,
     overlap: int = 50
 ) -> List[TextChunk]:
-    """Read file and chunk its contents."""
+    """Lee un archivo .txt, .md o .pdf y lo divide en chunks."""
     if filepath.lower().endswith('.pdf'):
         from pypdf import PdfReader
         reader = PdfReader(filepath)
@@ -85,7 +84,6 @@ def chunk_file(
         for page in reader.pages:
             text += page.extract_text() + "\n"
     else:
-        # .txt or .md
         text = Path(filepath).read_text(encoding = 'utf-8', errors = 'ignore')
 
     source = os.path.basename(filepath)

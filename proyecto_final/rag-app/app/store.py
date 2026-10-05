@@ -5,7 +5,7 @@ from app.chunk import TextChunk
 
 
 class RetrievedChunk(TypedDict):
-    """A chunk returned by a similarity search."""
+    """Chunk devuelto por una búsqueda de similitud."""
     id: int
     chunk_id: str
     source: str
@@ -19,7 +19,7 @@ class DocumentsResult(TypedDict):
     documents: List[DocumentEntry]
 
 class VectorStore:
-    """ChromaDB vector store wrapper."""
+    """Base vectorial persistente sobre ChromaDB."""
     
     def __init__(self, persist_dir: str = "chroma"):
         Path(persist_dir).mkdir(parents = True, exist_ok = True)
@@ -36,7 +36,6 @@ class VectorStore:
         chunks: List[TextChunk],
         embeddings: List[List[float]]
     ) -> None:
-        """Add chunks to the store."""
         ids = [chunk["id"] for chunk in chunks]
         documents = [chunk["text"] for chunk in chunks]
         metadata = [
@@ -59,7 +58,7 @@ class VectorStore:
         query_embedding: List[float],
         top_k: int = 3
     ) -> List[RetrievedChunk]:
-        """Search for similar documents."""
+        """Devuelve los top_k chunks más similares a la consulta."""
 
         results = self.collection.query(
             query_embeddings = [query_embedding],
@@ -76,8 +75,7 @@ class VectorStore:
                 results["distances"][0]
             )):
 
-                # ChromaDB returns distances, where 0 is identical and 2 is completely different
-                # Convert distance to similarity score (cosine distance to similarity)
+                # Chroma devuelve distancia coseno (0 = idéntico, 2 = opuesto); se convierte a similitud
                 similarity_score = 1 - distance
                 
                 chunks.append({
@@ -91,12 +89,12 @@ class VectorStore:
         return chunks
     
     def get_documents(self) -> DocumentsResult:
-        """Get list of unique documents in the collection."""
+        """Devuelve los nombres de los documentos cargados, sin repetir."""
         results = self.collection.get(include = ["metadatas"])
 
         sources: set[str] = set()
         for metadata in results["metadatas"] or []:
-            sources.add(str(metadata.get("source", "Unknown")))
+            sources.add(str(metadata.get("source", "Desconocido")))
 
         documents = [DocumentEntry(name=name) for name in sorted(sources)]
 

@@ -4,13 +4,10 @@ from dotenv import load_dotenv
 
 load_dotenv()
 
-# Configure page
-st.set_page_config(page_title="Sistema Rag", layout="wide", initial_sidebar_state="expanded")
+st.set_page_config(page_title="Sistema RAG", layout="wide", initial_sidebar_state="expanded")
 
-# API base URL
 API_BASE_URL = "http://localhost:8000"
 
-# Initialize session state
 if "last_item" not in st.session_state:
     st.session_state.last_item = None
 
@@ -21,16 +18,25 @@ def check_api_health() -> tuple[bool, dict | None]:
     except requests.exceptions.RequestException:
         return False, None
 
-def ingest_directory(dir_path: str | None) -> dict:
+def error_detail(response: requests.Response) -> str:
+    try:
+        detail = response.json().get("detail")
+    except ValueError:
+        detail = None
+    # Los errores de validación de FastAPI (422) traen una lista en lugar de un texto
+    return detail if isinstance(detail, str) else f"Error {response.status_code}"
+
+def ingest_directory(dir_path: str) -> str | None:
+    """Devuelve None si la carga fue bien, o el mensaje de error."""
     try:
         response = requests.post(
             f"{API_BASE_URL}/ingest",
             json={"directory_path": dir_path},
             timeout=60
         )
-        return response.json()
     except requests.exceptions.RequestException as e:
-        return {"error": f"API error: {str(e)}", "status": "error"}
+        return f"No se pudo conectar con la API: {e}"
+    return None if response.ok else error_detail(response)
 
 def list_documents() ->  list[str]:
     try:
@@ -43,18 +49,19 @@ def list_documents() ->  list[str]:
     except requests.exceptions.RequestException:
         return []
 
-def query_rag(question: str, top_k: int = 3) -> dict:
+def query_rag(question: str, top_k: int = 3) -> tuple[dict | None, str | None]:
     try:
         response = requests.post(
             f"{API_BASE_URL}/query",
             json={"question": question, "top_k": top_k},
             timeout=30
         )
-        return response.json()
     except requests.exceptions.RequestException as e:
-        return {"error": f"API error: {str(e)}", "answer": "", "citations": [], "abstained": True}
+        return None, f"No se pudo conectar con la API: {e}"
+    if not response.ok:
+        return None, error_detail(response)
+    return response.json(), None
 
-# Header
 st.title("Sistema RAG")
 st.markdown("Retrieval Augmented Generation")
 
@@ -67,18 +74,17 @@ if not api_ok:
 if health_info and not health_info.get("api_configured"):
     st.warning("API key no configurada.")
 
-# Sidebar
 with st.sidebar:
     st.header("Documentos")
     dir_path = st.text_input("Directorio:", value="data")
     st.markdown("<small>Soporta archivos en formato .txt, .md y .pdf</small>", unsafe_allow_html=True)
     if st.button("Cargar", use_container_width=True):
         with st.spinner("Cargando documentos..."):
-            result = ingest_directory(dir_path)
-            if result.get("status") == "success":
-                st.success("Exito. Documentos cargados")
+            error = ingest_directory(dir_path)
+            if error:
+                st.error(f"Error al cargar documentos: {error}")
             else:
-                st.error(f"Error al cargar documentos: {result.get('error', 'Unknown error')}")
+                st.success("Documentos cargados")
 
     documents = list_documents()
     if documents:
@@ -86,7 +92,6 @@ with st.sidebar:
         for doc in documents:
             st.markdown(f"- {doc}")
 
-# Query interface (inside a form so Enter submits like the button)
 with st.form("query_form", border=False, clear_on_submit=True):
     question = st.text_input(
         "Pregunta:",
@@ -99,17 +104,19 @@ if submit_button:
         st.warning("Escribe una pregunta")
     else:
         with st.spinner("Buscando..."):
-            result = query_rag(question)
+            result, error = query_rag(question)
 
-        # Display question and answer
-        st.session_state.last_item = {
-            "question": question,
-            "answer": result.get("answer", ""),
-            "citations": result.get("citations", []),
-            "abstained": result.get("abstained", False)
-        }
+        if error:
+            st.session_state.last_item = None
+            st.error(error)
+        else:
+            st.session_state.last_item = {
+                "question": question,
+                "answer": result["answer"],
+                "citations": result["citations"],
+                "abstained": result["abstained"]
+            }
 
-# Show the last question and answer
 item = st.session_state.last_item
 if item:
     st.chat_message("user").write(item["question"])
@@ -123,11 +130,10 @@ if item:
         if item["citations"]:
             with st.expander(f"Fuentes ({len(item['citations'])} documentos citados)"):
                 for citation in item["citations"]:
-                    st.markdown(f"**[{citation['id']}] {citation['source']}** (similarity: {citation['score']:.3f})")
+                    st.markdown(f"**[{citation['id']}] {citation['source']}** (similitud: {citation['score']:.3f})")
                     st.text(citation["text"][:400] + "..." if len(citation["text"]) > 400 else citation["text"])
                     st.divider()
 
-# Footer
 st.divider()
 st.markdown("""
 ### Cómo usar:

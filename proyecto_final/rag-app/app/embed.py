@@ -4,12 +4,12 @@ import google.generativeai as genai
 
 
 class EmbeddingClient:
-    """Google AI embeddings client."""
+    """Cliente de embeddings de Google AI."""
     
     def __init__(self, api_key: str = None, model: str = "gemini-embedding-001"):
         api_key = api_key or os.getenv("GOOGLE_API_KEY")
         if not api_key:
-            raise ValueError("GOOGLE_API_KEY not set in environment or passed as argument")
+            raise ValueError("GOOGLE_API_KEY no está definida")
         
         genai.configure(api_key = api_key)
         self.model = model
